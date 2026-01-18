@@ -44,7 +44,9 @@ function getDb() {
   `);
 
   const ticketColumns = new Set(
-    db.prepare("PRAGMA table_info(tickets);").all().map((row: SqliteRow) => row.name)
+    (db.prepare("PRAGMA table_info(tickets);").all() as SqliteRow[]).map(
+      (row) => row.name
+    )
   );
   if (!ticketColumns.has("time_spent")) {
     db.exec("ALTER TABLE tickets ADD COLUMN time_spent REAL;");
