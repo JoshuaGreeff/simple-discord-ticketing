@@ -1,7 +1,12 @@
 services:
   bot:
     build: .
-    env_file: .env
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      CLIENT_ID: ${CLIENT_ID}
+      GUILD_ID: ${GUILD_ID-}
+      DATA_DIR: ${DATA_DIR-/app/data}
+      DB_PATH: ${DB_PATH-/app/data/store.db}
     volumes:
       - ticket-data:/app/data
     restart: unless-stopped
