@@ -25,9 +25,7 @@ If `GUILD_ID` is set, commands register only in that guild (faster). If omitted,
 - `/ticket update` updates a ticket (requires project + ticket number and `time_spent`, optional `title`).
 - `/ticket assign` assigns a ticket to a user.
 - `/ticket assign-external` assigns a ticket to an external assignee.
-- `/ticket unassign` removes assignees from a ticket.
-- `/assign` assigns a ticket to a user (defaults to you).
-- `/unassign` clears all assignees on a ticket or removes one user if provided.
+- `/ticket unassign` removes assignees from a ticket (requires project + ticket number).
 
 ## Notes
 

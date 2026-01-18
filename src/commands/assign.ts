@@ -1,6 +1,6 @@
 import type { ChatInputCommandInteraction, Client } from "discord.js";
 import { MessageFlags } from "discord.js";
-import { buildNoticeEmbed, findProjectByTag, findTicketByDisplayId, findTicketByNumber, getDisplayTicketId, scheduleReplyDelete } from "../services/helpers.js";
+import { buildNoticeEmbed, findProjectByTag, findTicketByNumber, getDisplayTicketId, scheduleReplyDelete } from "../services/helpers.js";
 import { COLORS } from "../services/colors.js";
 import { getGuild, loadStore, saveStore } from "../services/storage.js";
 import { updateBoard } from "../services/boardUpdate.js";
@@ -137,9 +137,26 @@ export async function handleUnassign(
 ) {
   const store = await loadStore();
   const guildData = getGuild(store, interaction.guildId!);
-  const ticketId = interaction.options.getString("ticket", true).trim();
-  const ticket =
-    findTicketByDisplayId(guildData, ticketId) || guildData.tickets[ticketId] || null;
+  const tag = interaction.options.getString("project", true).trim().toUpperCase();
+  const project = findProjectByTag(guildData, tag);
+  if (!project) {
+    await interaction.reply({
+      embeds: [
+        buildNoticeEmbed("Unknown Project", `Unknown project tag: ${tag}.`, COLORS.error)
+      ],
+      flags: MessageFlags.Ephemeral
+    });
+    scheduleReplyDelete(interaction);
+    return;
+  }
+
+  const ticketNumber = Number.parseInt(
+    interaction.options.getString("ticket", true).trim(),
+    10
+  );
+  const ticket = Number.isFinite(ticketNumber)
+    ? findTicketByNumber(guildData, project.id, ticketNumber)
+    : null;
   if (!ticket) {
     await interaction.reply({
       embeds: [buildNoticeEmbed("Not Found", "Ticket not found.", COLORS.error)],
@@ -159,9 +176,9 @@ export async function handleUnassign(
   ticket.updatedAt = new Date().toISOString();
   await saveStore(store);
 
-  const project = guildData.projects[ticket.projectId];
-  const displayId = project
-    ? getDisplayTicketId(project, ticket.ticketNumber)
+  const projectForDisplay = guildData.projects[ticket.projectId];
+  const displayId = projectForDisplay
+    ? getDisplayTicketId(projectForDisplay, ticket.ticketNumber)
     : ticket.id;
   await interaction.reply({
     embeds: [

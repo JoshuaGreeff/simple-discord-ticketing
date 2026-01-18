@@ -195,8 +195,15 @@ export const commands: RESTPostAPIApplicationCommandsJSONBody[] = [
         type: ApplicationCommandOptionType.Subcommand,
         options: [
           {
+            name: "project",
+            description: "Project tag",
+            type: ApplicationCommandOptionType.String,
+            required: true,
+            autocomplete: true
+          },
+          {
             name: "ticket",
-            description: "Ticket ID",
+            description: "Ticket number",
             type: ApplicationCommandOptionType.String,
             required: true
           },
