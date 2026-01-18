@@ -19,6 +19,7 @@ export type Ticket = {
   ticketNumber: number;
   title: string;
   assignees: string[];
+  externalAssignees: string[];
   targetDate: string | null;
   timeSpentHours: number | null;
   status: TicketStatus;

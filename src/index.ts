@@ -11,7 +11,7 @@ import { commands } from "./commands/definitions.js";
 import { handleAutocomplete } from "./commands/autocomplete.js";
 import { handleProjectSetupCommand, handleProjectDeleteCommand, handleProjectModal } from "./commands/project.js";
 import { handleTicketCreate, handleProjectHistory, handleTicketModify, handleTicketHistoryClose, handleTicketHistoryPage } from "./commands/ticket.js";
-import { handleAssign, handleUnassign } from "./commands/assign.js";
+import { handleAssign, handleAssignExternal, handleUnassign } from "./commands/assign.js";
 import { handleBoardClose, handleBoardCommand, handleBoardPage } from "./commands/board.js";
 import { buildNoticeEmbed, scheduleReplyDelete } from "./services/helpers.js";
 import { COLORS } from "./services/colors.js";
@@ -108,6 +108,8 @@ client.on("interactionCreate", async (interaction: Interaction) => {
           await handleTicketModify(interaction, client);
         } else if (subcommand === "assign") {
           await handleAssign(interaction, client);
+        } else if (subcommand === "assign-external") {
+          await handleAssignExternal(interaction, client);
         } else if (subcommand === "unassign") {
           await handleUnassign(interaction, client);
         }

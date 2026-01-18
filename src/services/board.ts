@@ -3,9 +3,12 @@ import type { GuildData, Project, Ticket } from "../types.js";
 import { COLORS } from "./colors.js";
 import { getDisplayTicketId } from "./helpers.js";
 
-function formatAssignees(assignees: string[]) {
-  if (!assignees || assignees.length === 0) return "Unassigned";
-  return assignees.map((id) => `<@${id}>`).join(", ");
+function formatAssignees(assignees: string[], externalAssignees: string[]) {
+  const mentions = assignees.map((id) => `<@${id}>`);
+  const externals = externalAssignees;
+  const combined = [...mentions, ...externals].filter((value) => value && value.trim());
+  if (combined.length === 0) return "Unassigned";
+  return combined.join(", ");
 }
 
 function formatStatus(status: Ticket["status"]) {
@@ -43,7 +46,7 @@ function buildStatusLine(ticket: Ticket, mode: "board" | "history") {
 
 function ticketLine(ticket: Ticket, project: Project, mode: "board" | "history") {
   const title = ticket.title.length > 60 ? `${ticket.title.slice(0, 57)}...` : ticket.title;
-  const assignees = formatAssignees(ticket.assignees);
+  const assignees = formatAssignees(ticket.assignees, ticket.externalAssignees);
   const displayId = getDisplayTicketId(project, ticket.ticketNumber);
   const lines = [
     `**${displayId}: ${title}**`,

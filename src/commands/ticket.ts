@@ -45,6 +45,7 @@ export async function handleTicketCreate(
     ticketNumber,
     title,
     assignees,
+    externalAssignees: [],
     targetDate: targetDate || null,
     timeSpentHours: null,
     status: "open",
@@ -100,10 +101,8 @@ export async function handleTicketModify(
     return;
   }
 
-  const timeSpentText = interaction.options.getString("time_spent", true).trim();
-  const timeSpentMatch = timeSpentText.match(/^(?:\\d+)(?:\\.\\d{1,2})?$/);
-  const timeSpent = timeSpentMatch ? Number(timeSpentText) : NaN;
-  if (!Number.isFinite(timeSpent)) {
+  const timeSpent = interaction.options.getNumber("time_spent", true);
+  if (!Number.isFinite(timeSpent) || Math.round(timeSpent * 100) !== timeSpent * 100) {
     await interaction.reply({
       embeds: [
         buildNoticeEmbed(
@@ -119,6 +118,7 @@ export async function handleTicketModify(
   }
 
   const targetDate = interaction.options.getString("due_date", false);
+  const title = interaction.options.getString("title", false);
   const status = interaction.options.getString("status", false) as
     | "backlog"
     | "open"
@@ -130,6 +130,9 @@ export async function handleTicketModify(
 
   if (targetDate) {
     ticket.targetDate = targetDate.trim();
+  }
+  if (title) {
+    ticket.title = title.trim();
   }
 
   ticket.timeSpentHours = timeSpent;

@@ -34,6 +34,7 @@ function getDb() {
       target_date TEXT,
       time_spent REAL,
       assignees TEXT NOT NULL,
+      external_assignees TEXT NOT NULL,
       started_at TEXT,
       completed_at TEXT,
       created_at TEXT NOT NULL,
@@ -41,6 +42,22 @@ function getDb() {
       UNIQUE(project_id, ticket_number)
     );
   `);
+
+  const ticketColumns = new Set(
+    db.prepare("PRAGMA table_info(tickets);").all().map((row: SqliteRow) => row.name)
+  );
+  if (!ticketColumns.has("time_spent")) {
+    db.exec("ALTER TABLE tickets ADD COLUMN time_spent REAL;");
+  }
+  if (!ticketColumns.has("started_at")) {
+    db.exec("ALTER TABLE tickets ADD COLUMN started_at TEXT;");
+  }
+  if (!ticketColumns.has("completed_at")) {
+    db.exec("ALTER TABLE tickets ADD COLUMN completed_at TEXT;");
+  }
+  if (!ticketColumns.has("external_assignees")) {
+    db.exec("ALTER TABLE tickets ADD COLUMN external_assignees TEXT NOT NULL DEFAULT '[]';");
+  }
 
   return db;
 }
@@ -96,6 +113,9 @@ export async function loadStore(): Promise<Store> {
       ticketNumber: row.ticket_number as number,
       title: row.title as string,
       assignees: row.assignees ? (JSON.parse(row.assignees as string) as string[]) : [],
+      externalAssignees: row.external_assignees
+        ? (JSON.parse(row.external_assignees as string) as string[])
+        : [],
       targetDate: (row.target_date as string) || null,
       timeSpentHours:
         row.time_spent !== null && row.time_spent !== undefined
@@ -125,7 +145,7 @@ export async function saveStore(store: Store): Promise<void> {
     "INSERT INTO projects (id, guild_id, name, tag, next_ticket_number, board_channel_id, board_message_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
   const insertTicket = db.prepare(
-    "INSERT INTO tickets (id, project_id, ticket_number, title, status, target_date, time_spent, assignees, started_at, completed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO tickets (id, project_id, ticket_number, title, status, target_date, time_spent, assignees, external_assignees, started_at, completed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
   const clear = db.transaction(() => {
@@ -156,6 +176,7 @@ export async function saveStore(store: Store): Promise<void> {
           ticket.targetDate || null,
           ticket.timeSpentHours,
           JSON.stringify(ticket.assignees || []),
+          JSON.stringify(ticket.externalAssignees || []),
           ticket.startedAt || null,
           ticket.completedAt || null,
           ticket.createdAt,
